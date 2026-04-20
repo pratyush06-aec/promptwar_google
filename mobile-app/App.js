@@ -5,7 +5,10 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 
-const WS_URL = 'ws://localhost:3000';
+import { Platform } from 'react-native';
+const protocol = Platform.OS === 'web' && typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const host = Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+const WS_URL = `${protocol}//${host}`;
 const { width, height } = Dimensions.get('window');
 
 // Liquid Glass Card Wrapper Component
