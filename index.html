@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Venue | Smart Crowd Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        
+        <!-- Left Panel: Venue Command Center -->
+        <main class="dashboard-panel glass-panel">
+            <header class="dashboard-header">
+                <div class="logo">
+                    <i data-lucide="scan-face"></i>
+                    <h1>Nexus Command</h1>
+                </div>
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span> System Live: Mock Hardware Streams Active
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                
+                <!-- Predictive Crowd Flow -->
+                <div class="card col-span-2">
+                    <div class="card-header">
+                        <h2><i data-lucide="users"></i> Predictive Crowd Flow AI</h2>
+                        <span class="badge warning">Warning in Sector B</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-mockup">
+                            <div class="heat-map">
+                                <div class="zone" data-intensity="low">Sec A</div>
+                                <div class="zone" data-intensity="high">Sec B</div>
+                                <div class="zone" data-intensity="medium">Sec C</div>
+                                <div class="zone" data-intensity="low">Sec D</div>
+                            </div>
+                            <div class="ai-insight">
+                                <strong>AI Alert:</strong> Sector B is projected to exceed capacity by 15% in 10 minutes.
+                                <button id="btn-reroute" class="btn primary">Reroute Traffic</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-Time Queue Prediction -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i data-lucide="clock"></i> Live Queue Prediction</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="queue-list" id="queue-list">
+                            <!-- Injected by JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Emergency Management -->
+                <div class="card emergency-card">
+                    <div class="card-header">
+                        <h2><i data-lucide="alert-triangle"></i> Emergency Protocols</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Initialize localized network broadcast override.</p>
+                        <button id="btn-evacuate" class="btn danger">Trigger Evacuation Routing</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Right Panel: Mobile App Simulation -->
+        <aside class="mobile-simulation">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                
+                <div class="app-view">
+                    <!-- App Header -->
+                    <div class="app-header">
+                        <h2>Nexus Attendee</h2>
+                        <div class="user-profile"><i data-lucide="user"></i></div>
+                    </div>
+
+                    <!-- 3D Map & IPS View -->
+                    <div class="map-container">
+                        <div class="map-overlay">
+                            <i data-lucide="map" class="map-bg-icon"></i>
+                            <div class="nav-path hidden" id="nav-path"></div>
+                            <div class="ips-dot" id="ips-dot"></div>
+                            
+                            <!-- POIs -->
+                            <div class="poi gate" style="top: 10%; left: 80%;">G3</div>
+                            <div class="poi gate" style="top: 90%; left: 10%;">G5</div>
+                            <div class="poi food" style="top: 50%; left: 50%;"><i data-lucide="coffee"></i></div>
+                            <!-- Friend Mock dot -->
+                            <div class="friend-dot hidden" id="friend-dot"></div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Notifications & Group Coord -->
+                    <div class="app-content">
+                        <h3>Smart Navigation</h3>
+                        <div class="nav-suggestion" id="nav-suggestion">
+                            <i data-lucide="navigation"></i>
+                            <div class="nav-text">Calculating optimal routes...</div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button id="btn-find-food" class="btn secondary"><i data-lucide="utensils"></i> Find Food</button>
+                            <button id="btn-share-loc" class="btn secondary"><i data-lucide="share-2"></i> Find Friends</button>
+                        </div>
+
+                        <!-- Notification Toast -->
+                        <div class="toast-container">
+                            <div class="toast hidden" id="app-toast">
+                                <i data-lucide="bell"></i>
+                                <span id="toast-message">New notification</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
