@@ -4,31 +4,51 @@
   <p>A production-ready microservices architecture optimizing physical event experiences using Predictive AI, Liquid Glass Mobile UIs, and real-time IoT Gateways.</p>
   <br/>
   <a href="https://nexus-gateway-369865779033.us-central1.run.app"><img src="https://img.shields.io/badge/🌐_Live_Demo-Cloud_Run-4285F4?style=for-the-badge" alt="Live Demo"></a>
+  <img src="https://img.shields.io/badge/Tests-17%2F17_Passing-34d399?style=for-the-badge" alt="Tests">
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License">
 </div>
-
-## ✨ Project Overview
-Built for the Google Promptwars Virtual Challenge, this framework drastically improves the attendee physical event experience at large-scale sporting venues through predictive queue management, smart facility routing, and actionable crowd navigation.
-
-We transitioned our initial architectural mockup into a completely live, fully-functioning multi-service cloud deployment consisting of 4 dedicated node architectures — now hosted on **Google Cloud Run**.
-
-## 🎯 Features
-- **Liquid Glass Motion UI:** Built cross-platform beautifully using `react-native-reanimated`, `moti`, and `expo-blur`.
-- **Live Queue Prediction:** Simulated hardware sensors ping localized node gateways to calculate congestion.
-- **Predictive AI Engine:** FastAPI backend processes streaming matrices to dynamically issue routing redirects.
-- **Zero-Latency WebSockets:** The entire loop completes in real-time, bridging hardware streams directly to the Attendee's mobile device.
-- **OAuth Authentication:** Mock Google & Instagram login system with JWT sessions, user profiles, and venue bookings.
-- **Theme System:** Dark / Light / System-Default toggle with smooth animated transitions and full palette switching.
 
 ---
 
-## 📽️ End-To-End Live Demo
-Observe the newly integrated GSAP-style staggered presentation physics intersecting with the simulated hardware flow data:
+## ✨ Project Overview
+
+Built for the **Google Promptwars Virtual Challenge**, this framework drastically improves the attendee physical event experience at large-scale sporting venues through predictive queue management, smart facility routing, and actionable crowd navigation.
+
+We transitioned our initial architectural mockup into a completely live, fully-functioning multi-service cloud deployment consisting of 4 dedicated microservice nodes — now hosted on **Google Cloud Run** with automatic scaling and zero-downtime deployments.
+
+---
+
+## 🎯 Features
+
+| Feature | Description |
+|---------|-------------|
+| 🪟 **Liquid Glass Motion UI** | Cross-platform frosted-glass aesthetic built with `react-native-reanimated`, `moti`, and `expo-blur`. Physics-based spring entrance animations at 60FPS. |
+| 📊 **Live Queue Prediction** | Simulated IoT hardware sensors ping the gateway every 5 seconds to generate real-time congestion telemetry for gates, washrooms, and food courts. |
+| 🧠 **Predictive AI Engine** | Python FastAPI service projects crowd occupancy 15 minutes into the future using flow-rate algorithms. Returns risk levels and reroute recommendations. |
+| ⚡ **Zero-Latency WebSockets** | End-to-end real-time data pipeline: hardware → AI inference → WebSocket broadcast → React state update → UI render. |
+| 🔐 **OAuth Authentication** | Mock Google & Instagram login system with JWT session management. Includes user profile view with venue booking history. |
+| 🌗 **Theme System** | Dark / Light / System-Default toggle (🌙 → ☀️ → 🖥️) with smooth animated transitions, `AsyncStorage` persistence, and complete palette switching across all UI components. |
+| 🧪 **Test Suite** | 17 automated tests across 2 services — 9 gateway tests (Jest + Supertest) and 8 AI engine tests (Pytest). |
+
+---
+
+## 📸 Live Deployment Screenshot
+
+<img src="./docs/live-dashboard.png" width="100%" alt="Live Cloud Run Dashboard">
+
+> *The Nexus Attendee dashboard running live on Google Cloud Run — showing real-time gate wait times, AI predictive alerts, theme toggle (🌙), and profile icon (N) in the header.*
+
+---
+
+## 📽️ End-To-End Interaction Demo
 
 <img src="./docs/demo.webp" width="90%" alt="Project Demo">
 
+> *GSAP-style staggered physics animations intersecting with simulated hardware flow data.*
+
 ---
 
-## 🏗️ Detailed System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
@@ -42,7 +62,7 @@ graph TD
     subgraph Gateway ["services/gateway (Node.js)"]
         Express[Express + Static Files]
         WS[WebSocket Server]
-        AuthAPI["/api/auth (JWT)"]
+        AuthAPI["/api/auth JWT"]
         HWLoop[Embedded Hardware Simulator]
     end
 
@@ -63,7 +83,18 @@ graph TD
     Model -->|"Risk JSON"| HWLoop
     HWLoop -->|"Broadcast"| WS
     WS -->|"VENUE_UPDATE"| UI
-    Sensors -->|"External Telemetry (local)"| WS
+    Sensors -->|"External Telemetry"| WS
+```
+
+### Data Flow (End-to-End)
+
+```
+1. Browser → Cloud Run LB → Express serves index.html + compiled JS bundle
+2. React App → auto-connects WSS to the same origin
+3. Gateway HW Loop (every 5s) → generates mock queue times & crowd levels
+4. Gateway → POST /predict_crowd → AI Engine → returns risk + projected occupancy
+5. Gateway → merges telemetry + AI predictions → broadcasts via WebSocket
+6. React state update → Moti animates Liquid Glass cards with fresh data
 ```
 
 ---
@@ -73,90 +104,142 @@ graph TD
 ```
 promptwar_google/
 ├── client/                        # React Native / Expo attendee app
-│   ├── App.js                     # Root component (Auth + Theme wrappers)
+│   ├── App.js                     # Root (AuthProvider → ThemeProvider → DashboardApp)
 │   ├── src/
 │   │   ├── context/
-│   │   │   ├── AuthContext.js     # OAuth state management
-│   │   │   └── ThemeContext.js    # Dark/Light/System theme management
+│   │   │   ├── AuthContext.js     # Mock OAuth state (Google / Instagram)
+│   │   │   └── ThemeContext.js    # Dark/Light/System with AsyncStorage
 │   │   ├── screens/
-│   │   │   ├── LoginScreen.js     # Google + Instagram login
-│   │   │   └── ProfileScreen.js   # User profile + venue bookings
+│   │   │   ├── LoginScreen.js     # Full-screen OAuth provider selection
+│   │   │   └── ProfileScreen.js   # User avatar, provider badge, bookings list
 │   │   ├── components/
-│   │   │   ├── GlassCard.js       # Frosted glass card wrapper
-│   │   │   ├── ThemeToggle.js     # 🌙/☀️/🖥️ toggle button
-│   │   │   └── ProfileIcon.js     # Header avatar icon
+│   │   │   ├── GlassCard.js       # Theme-aware frosted glass wrapper
+│   │   │   ├── ThemeToggle.js     # Animated 🌙/☀️/🖥️ cycle button
+│   │   │   └── ProfileIcon.js    # Provider-colored circular avatar
 │   │   └── themes/
-│   │       └── colors.js          # Dark + Light palettes
+│   │       └── colors.js          # 65+ design tokens for Dark + Light palettes
 │   └── __tests__/                 # Client test suite
 ├── services/
-│   ├── gateway/                   # Node.js API Gateway
-│   │   ├── index.js               # Express + WebSocket + HW simulator
-│   │   ├── routes/auth.js         # JWT auth endpoints
-│   │   └── tests/                 # Gateway test suite
-│   ├── ai-engine/                 # Python FastAPI AI service
-│   │   ├── main.py                # Prediction endpoints
-│   │   └── tests/                 # AI test suite
-│   └── hardware-simulator/       # IoT telemetry mock
+│   ├── gateway/                   # Node.js API Gateway (port 3000)
+│   │   ├── index.js               # Express + WSS + embedded HW simulator loop
+│   │   ├── routes/auth.js         # POST /login, GET /me, POST /logout (JWT)
+│   │   ├── public/                # Compiled Expo static web bundle
+│   │   └── tests/gateway.test.js  # 9 tests (Jest + Supertest)
+│   ├── ai-engine/                 # Python FastAPI AI service (port 8000)
+│   │   ├── main.py                # /health, /predict_crowd endpoints
+│   │   ├── Procfile               # Cloud Run entry point
+│   │   └── tests/test_main.py     # 8 tests (Pytest)
+│   └── hardware-simulator/       # Standalone IoT mock (local dev only)
 │       └── sim_cameras.js
 ├── dashboard-preview/             # Static HTML/CSS/JS early prototype
-├── docs/                          # Logo, demo recordings
-├── CONTRIBUTING.md                # Contribution guidelines
+├── docs/                          # Logo, demo recordings, screenshots
+│   ├── logo.png
+│   ├── demo.webp
+│   └── live-dashboard.png
+├── CONTRIBUTING.md                # Fork, branch, PR, code style guidelines
+├── .gitignore
 └── README.md
 ```
 
 ---
 
 ## 💻 Tech Stack
+
 | Layer | Technologies |
 |-------|-------------|
-| **Frontend** | React Native (Expo), Moti, Reanimated 3, expo-blur, expo-linear-gradient |
-| **Gateway** | Node.js, Express, `ws`, JSON Web Tokens |
-| **AI Backend** | Python 3, FastAPI, Uvicorn, NumPy, Pydantic |
-| **IoT Simulator** | Node.js vanilla scripts |
-| **Testing** | Jest + Supertest (JS), Pytest (Python) |
-| **Deployment** | Google Cloud Run, Cloud Build, Artifact Registry |
+| **Frontend** | React Native (Expo 54), Moti 0.30, Reanimated 4, expo-blur, expo-linear-gradient, AsyncStorage |
+| **Gateway** | Node.js 18+, Express 4, `ws` 8, JSON Web Tokens (jsonwebtoken) |
+| **AI Backend** | Python 3.10+, FastAPI, Uvicorn, NumPy, Pydantic |
+| **IoT Simulator** | Node.js vanilla scripts (embedded in gateway for cloud) |
+| **Testing** | Jest 29 + Supertest 6 (Gateway), Pytest 7 + HTTPx (AI Engine) |
+| **Deployment** | Google Cloud Run, Cloud Build (Buildpacks), Artifact Registry |
+| **CI/CD** | Source-based deployment via `gcloud run deploy --source .` |
+
+---
 
 ## 🚀 How to Run Locally
+
+Open **4 separate terminals** and run:
+
 ```bash
 # Terminal 1 — AI Engine
-cd services/ai-engine && pip install -r requirements.txt && python -m uvicorn main:app --port 8000
+cd services/ai-engine
+pip install -r requirements.txt
+python -m uvicorn main:app --port 8000
 
 # Terminal 2 — API Gateway
-cd services/gateway && npm install && node index.js
+cd services/gateway
+npm install
+node index.js
 
-# Terminal 3 — Hardware Simulator
-cd services/hardware-simulator && node sim_cameras.js
+# Terminal 3 — Hardware Simulator (optional, gateway has built-in loop)
+cd services/hardware-simulator
+node sim_cameras.js
 
 # Terminal 4 — Client (Expo Web)
-cd client && npm install && npx expo start -c --web
+cd client
+npm install
+npx expo start -c --web
 ```
+
+Open `http://localhost:8081` in your browser. You'll see the Login Screen → sign in → Dashboard with live data.
+
+---
 
 ## 🧪 Running Tests
+
 ```bash
-# AI Engine
+# AI Engine — 8 tests
 cd services/ai-engine && python -m pytest tests/ -v
 
-# Gateway
+# Gateway — 9 tests
 cd services/gateway && npm test
-
-# Client
-cd client && npm test
 ```
+
+**Test Coverage:**
+
+| Suite | Tests | What's Covered |
+|-------|-------|---------------|
+| Gateway | 9 | Health endpoint, Google login, Instagram login, missing provider, missing email, JWT auth/me, invalid token, no token, logout |
+| AI Engine | 8 | Health check, low/medium/high risk predictions, occupancy formula validation, zero occupancy edge case, missing fields (422) |
+
+---
 
 ## ☁️ Cloud Deployment (Google Cloud Run)
 
-The entire system is deployed as two independent Cloud Run services under GCP project `nexus-venue-190880`:
+The system runs as **2 independent Cloud Run services** under GCP project `nexus-venue-190880`, region `us-central1`:
 
-| Service | Role | URL |
-|---------|------|-----|
-| **nexus-gateway** | Node.js API Gateway + Static React Frontend + Embedded Hardware Simulator | [nexus-gateway-369865779033.us-central1.run.app](https://nexus-gateway-369865779033.us-central1.run.app) |
-| **nexus-ai** | Python FastAPI Predictive AI Engine | `nexus-ai-369865779033.us-central1.run.app` |
+| Service | Rev | Role | URL |
+|---------|-----|------|-----|
+| **nexus-gateway** | 00003 | Node.js Gateway + Static Frontend + Auth API + HW Simulator | [nexus-gateway-369865779033.us-central1.run.app](https://nexus-gateway-369865779033.us-central1.run.app) |
+| **nexus-ai** | 00001 | Python FastAPI Predictive AI Engine | `nexus-ai-369865779033.us-central1.run.app` |
 
-The gateway serves the compiled Expo Web bundle, runs the hardware mock loop internally, and calls the AI service for real-time crowd predictions — all serverless and auto-scaling.
+### How it works in production
+- The gateway container serves the **compiled Expo Web bundle** as static files
+- An **embedded hardware simulator** loop generates mock telemetry every 5 seconds
+- The gateway calls the **AI service** via internal HTTP for crowd risk predictions
+- Results are **broadcast via WebSocket** to all connected browsers in real-time
+- Everything is **serverless** — scales to zero when idle, scales up automatically under load
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Serves the React Native web app |
+| `GET` | `/api/health` | Gateway health check |
+| `POST` | `/api/auth/login` | Mock OAuth login (returns JWT) |
+| `GET` | `/api/auth/me` | Get authenticated user + bookings |
+| `POST` | `/api/auth/logout` | Invalidate session |
+| `WSS` | `/` | WebSocket for real-time venue data |
+
+---
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to set up the development environment, branch naming, and PR requirements.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on setting up the development environment, branch naming conventions, PR requirements, and code style.
+
+---
 
 ## 📄 License
-MIT
+
+MIT — See [LICENSE](./LICENSE) for details.
