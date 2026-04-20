@@ -20,7 +20,7 @@ We transitioned our initial architectural mockup into a completely live, fully-f
 ## 📽️ End-To-End Live Demo
 Observe the newly integrated GSAP-style staggered presentation physics intersecting with the simulated hardware flow data:
 
-![React Native Live Demo](./promptwar_google/docs/demo.webp)
+<img src="./docs/demo.webp" width="90%" alt="Project Demo">
 
 ---
 
