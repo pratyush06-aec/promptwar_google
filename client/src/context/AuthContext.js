@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const AuthContext = createContext();
 
 const AUTH_STORAGE_KEY = '@nexus_auth_user';
 
-// Derive the API base from the current host (works on Cloud Run and local dev)
+// Replace string with the real Web Client ID created in your GCP console
+const GOOGLE_CLIENT_ID = '1234567890-testclientid.apps.googleusercontent.com';
+
 const getApiBase = () => {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return `${window.location.protocol}//${window.location.host}`;
@@ -14,14 +20,15 @@ const getApiBase = () => {
   return 'http://localhost:3000';
 };
 
-/**
- * AuthProvider — manages mock OAuth login/logout and user session.
- */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore persisted session on mount
+  // Expose Google Auth hook to LoginScreen
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_CLIENT_ID,
+  });
+
   useEffect(() => {
     AsyncStorage.getItem(AUTH_STORAGE_KEY).then((stored) => {
       if (stored) {
@@ -31,52 +38,53 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // Watch for successful Google auth response
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      handleBackendLogin('google', { idToken: id_token });
+    }
+  }, [response]);
+
   /**
-   * Mock OAuth login. In production, this would redirect to the provider.
-   * @param {'google' | 'instagram'} provider
+   * Internal method to exchange idToken or mockData with backend.
    */
-  const login = useCallback(async (provider) => {
-    // Simulate OAuth token exchange delay
-    await new Promise((r) => setTimeout(r, 800));
-
-    const mockUsers = {
-      google: {
-        id: 'g-' + Date.now(),
-        name: 'Nexus User',
-        email: 'user@gmail.com',
-        avatar: null,
-        provider: 'google',
-      },
-      instagram: {
-        id: 'ig-' + Date.now(),
-        name: 'Nexus Creator',
-        email: 'creator@instagram.com',
-        avatar: null,
-        provider: 'instagram',
-      },
-    };
-
-    const mockUser = mockUsers[provider];
-
+  const handleBackendLogin = async (provider, payload) => {
     try {
       const apiBase = getApiBase();
       const res = await fetch(`${apiBase}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockUser),
+        body: JSON.stringify({ provider, ...payload }),
       });
       const data = await res.json();
-      const sessionUser = { ...mockUser, token: data.token, bookings: data.bookings || [] };
+      
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      const sessionUser = { ...data.user, token: data.token, bookings: data.bookings || [] };
       setUser(sessionUser);
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
     } catch (err) {
-      // If backend is unreachable, still allow mock login client-side
-      console.warn('Auth API unreachable, using client-only session:', err.message);
-      const sessionUser = { ...mockUser, token: 'mock-jwt-' + Date.now(), bookings: [] };
-      setUser(sessionUser);
-      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
+      console.error('Backend auth handoff failed:', err.message);
+      alert('Authentication Failed: ' + err.message);
     }
-  }, []);
+  };
+
+  /**
+   * Public login method.
+   * @param {'google' | 'instagram'} provider
+   */
+  const login = useCallback(async (provider) => {
+    if (provider === 'google') {
+      promptAsync();
+    } else if (provider === 'instagram') {
+      // Instagram remains a mock flow until real Meta Developer App is configured
+      await new Promise(r => setTimeout(r, 800));
+      handleBackendLogin('instagram', { 
+        mockData: { email: 'creator@instagram.com', name: 'Nexus Creator' } 
+      });
+    }
+  }, [promptAsync]);
 
   const logout = useCallback(async () => {
     setUser(null);
@@ -84,7 +92,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout, googleAuthReady: !!request }}>
       {children}
     </AuthContext.Provider>
   );
