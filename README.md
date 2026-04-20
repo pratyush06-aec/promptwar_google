@@ -26,7 +26,7 @@ We transitioned our initial architectural mockup into a completely live, fully-f
 | 📊 **Live Queue Prediction** | Simulated IoT hardware sensors ping the gateway every 5 seconds to generate real-time congestion telemetry for gates, washrooms, and food courts. |
 | 🧠 **Predictive AI Engine** | Python FastAPI service projects crowd occupancy 15 minutes into the future using flow-rate algorithms. Returns risk levels and reroute recommendations. |
 | ⚡ **Zero-Latency WebSockets** | End-to-end real-time data pipeline: hardware → AI inference → WebSocket broadcast → React state update → UI render. |
-| 🔐 **OAuth Authentication** | Mock Google & Instagram login system with JWT session management. Includes user profile view with venue booking history. |
+| 🔐 **Authentication & Storage** | Real Google OAuth integration via `expo-auth-session` with JWT token generation and verification. User sessions, profiles, and venue bookings are persistently stored in **Google Cloud Firebase Firestore**. |
 | 🌗 **Theme System** | Dark / Light / System-Default toggle (🌙 → ☀️ → 🖥️) with smooth animated transitions, `AsyncStorage` persistence, and complete palette switching across all UI components. |
 | 🧪 **Test Suite** | 17 automated tests across 2 services — 9 gateway tests (Jest + Supertest) and 8 AI engine tests (Pytest). |
 
@@ -107,11 +107,11 @@ promptwar_google/
 │   ├── App.js                     # Root (AuthProvider → ThemeProvider → DashboardApp)
 │   ├── src/
 │   │   ├── context/
-│   │   │   ├── AuthContext.js     # Mock OAuth state (Google / Instagram)
+│   │   │   ├── AuthContext.js     # Real Google OAuth state + Cloud Run API handoff
 │   │   │   └── ThemeContext.js    # Dark/Light/System with AsyncStorage
 │   │   ├── screens/
 │   │   │   ├── LoginScreen.js     # Full-screen OAuth provider selection
-│   │   │   └── ProfileScreen.js   # User avatar, provider badge, bookings list
+│   │   │   └── ProfileScreen.js   # User avatar, provider badge, bookings list loaded from Firestore
 │   │   ├── components/
 │   │   │   ├── GlassCard.js       # Theme-aware frosted glass wrapper
 │   │   │   ├── ThemeToggle.js     # Animated 🌙/☀️/🖥️ cycle button
@@ -122,7 +122,8 @@ promptwar_google/
 ├── services/
 │   ├── gateway/                   # Node.js API Gateway (port 3000)
 │   │   ├── index.js               # Express + WSS + embedded HW simulator loop
-│   │   ├── routes/auth.js         # POST /login, GET /me, POST /logout (JWT)
+│   │   ├── firebase.js            # Firebase Admin SDK initialization
+│   │   ├── routes/auth.js         # JWT auth + Google Token verification + Firestore ops
 │   │   ├── public/                # Compiled Expo static web bundle
 │   │   └── tests/gateway.test.js  # 9 tests (Jest + Supertest)
 │   ├── ai-engine/                 # Python FastAPI AI service (port 8000)
@@ -147,8 +148,8 @@ promptwar_google/
 
 | Layer | Technologies |
 |-------|-------------|
-| **Frontend** | React Native (Expo 54), Moti 0.30, Reanimated 4, expo-blur, expo-linear-gradient, AsyncStorage |
-| **Gateway** | Node.js 18+, Express 4, `ws` 8, JSON Web Tokens (jsonwebtoken) |
+| **Frontend** | React Native (Expo 54), Moti 0.30, Reanimated 4, `expo-auth-session` |
+| **Gateway** | Node.js 18+, Express 4, `ws` 8, `firebase-admin`, `google-auth-library` |
 | **AI Backend** | Python 3.10+, FastAPI, Uvicorn, NumPy, Pydantic |
 | **IoT Simulator** | Node.js vanilla scripts (embedded in gateway for cloud) |
 | **Testing** | Jest 29 + Supertest 6 (Gateway), Pytest 7 + HTTPx (AI Engine) |
@@ -227,8 +228,8 @@ The system runs as **2 independent Cloud Run services** under GCP project `nexus
 |--------|----------|-------------|
 | `GET` | `/` | Serves the React Native web app |
 | `GET` | `/api/health` | Gateway health check |
-| `POST` | `/api/auth/login` | Mock OAuth login (returns JWT) |
-| `GET` | `/api/auth/me` | Get authenticated user + bookings |
+| `POST` | `/api/auth/login` | Verifies Google ID tokens, upserts to Firestore, returns JWT session |
+| `GET` | `/api/auth/me` | Fetch authenticated user data & live bookings directly from Firestore |
 | `POST` | `/api/auth/logout` | Invalidate session |
 | `WSS` | `/` | WebSocket for real-time venue data |
 
