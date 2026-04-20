@@ -7,7 +7,14 @@ const authRouter = require('./routes/auth');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+        // Force browser to always check for a new index.html (thus a new JS hash)
+        res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
