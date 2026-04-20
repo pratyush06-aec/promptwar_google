@@ -1,15 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const { db } = require('../firebase');
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'nexus-venue-dev-secret';
-
-// Google OAuth Client Setup
-// Replace this with the real Web Client ID created in your GCP console
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '1234567890-testclientid.apps.googleusercontent.com';
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 /**
  * POST /api/auth/login
@@ -25,19 +19,12 @@ router.post('/login', async (req, res) => {
 
   try {
     if (provider === 'google') {
-      if (!idToken) return res.status(400).json({ error: 'Google idToken is required' });
-      // 1. Verify Google token
-      const ticket = await googleClient.verifyIdToken({
-        idToken,
-        audience: GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      
+      if (!mockData || !mockData.email) return res.status(400).json({ error: 'Google mockData is required' });
       userData = {
-        id: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        avatar: payload.picture,
+        id: mockData.id || `g-${Date.now()}`,
+        email: mockData.email,
+        name: mockData.name || 'Nexus User',
+        avatar: mockData.avatar || null,
         provider: 'google'
       };
     } else if (provider === 'instagram') {

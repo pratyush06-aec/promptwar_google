@@ -1,17 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const AuthContext = createContext();
 
 const AUTH_STORAGE_KEY = '@nexus_auth_user';
-
-// Replace string with the real Web Client ID created in your GCP console
-const GOOGLE_CLIENT_ID = '1234567890-testclientid.apps.googleusercontent.com';
 
 const getApiBase = () => {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -24,11 +17,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Expose Google Auth hook to LoginScreen
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-  });
-
   useEffect(() => {
     AsyncStorage.getItem(AUTH_STORAGE_KEY).then((stored) => {
       if (stored) {
@@ -38,24 +26,16 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
-  // Watch for successful Google auth response
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleBackendLogin('google', { idToken: id_token });
-    }
-  }, [response]);
-
   /**
-   * Internal method to exchange idToken or mockData with backend.
+   * Internal method to exchange mockData with backend to persist in Firestore.
    */
-  const handleBackendLogin = async (provider, payload) => {
+  const handleBackendLogin = async (provider, mockData) => {
     try {
       const apiBase = getApiBase();
       const res = await fetch(`${apiBase}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, ...payload }),
+        body: JSON.stringify({ provider, mockData }),
       });
       const data = await res.json();
       
@@ -66,7 +46,10 @@ export function AuthProvider({ children }) {
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
     } catch (err) {
       console.error('Backend auth handoff failed:', err.message);
-      alert('Authentication Failed: ' + err.message);
+      // Fallback for isolated local testing if backend is down
+      const fallbackUser = { ...mockData, token: 'mock-jwt-fallback', bookings: [] };
+      setUser(fallbackUser);
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(fallbackUser));
     }
   };
 
@@ -75,16 +58,25 @@ export function AuthProvider({ children }) {
    * @param {'google' | 'instagram'} provider
    */
   const login = useCallback(async (provider) => {
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 800));
+
     if (provider === 'google') {
-      promptAsync();
+      handleBackendLogin('google', { 
+        email: 'user@gmail.com', 
+        name: 'Nexus User',
+        id: 'g-dummy-id',
+        avatar: null
+      });
     } else if (provider === 'instagram') {
-      // Instagram remains a mock flow until real Meta Developer App is configured
-      await new Promise(r => setTimeout(r, 800));
       handleBackendLogin('instagram', { 
-        mockData: { email: 'creator@instagram.com', name: 'Nexus Creator' } 
+        email: 'creator@instagram.com', 
+        name: 'Nexus Creator',
+        id: 'ig-dummy-id',
+        avatar: null
       });
     }
-  }, [promptAsync]);
+  }, []);
 
   const logout = useCallback(async () => {
     setUser(null);
@@ -92,7 +84,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout, googleAuthReady: !!request }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

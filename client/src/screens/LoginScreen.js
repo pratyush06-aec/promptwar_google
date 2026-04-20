@@ -10,7 +10,7 @@ import { useTheme } from '../context/ThemeContext';
  * Displays Google and Instagram buttons with staggered Moti entrance animations.
  */
 const LoginScreen = () => {
-  const { login, googleAuthReady } = useAuth();
+  const { login } = useAuth();
   const { resolvedTheme: t } = useTheme();
   const [loading, setLoading] = useState(null);
 
@@ -45,9 +45,9 @@ const LoginScreen = () => {
       >
         {/* Google */}
         <TouchableOpacity
-          style={[styles.providerBtn, styles.googleBtn, !googleAuthReady && { opacity: 0.7 }]}
+          style={[styles.providerBtn, styles.googleBtn]}
           onPress={() => handleLogin('google')}
-          disabled={!!loading || !googleAuthReady}
+          disabled={!!loading}
         >
           {loading === 'google' ? (
             <ActivityIndicator color="#fff" />
