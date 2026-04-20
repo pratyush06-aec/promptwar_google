@@ -2,6 +2,7 @@ const express = require('express');
 const { WebSocketServer } = require('ws');
 const cors = require('cors');
 const http = require('http');
+const authRouter = require('./routes/auth');
 
 const app = express();
 app.use(cors());
@@ -73,6 +74,9 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => console.log('Client disconnected'));
 });
+
+// Auth routes
+app.use('/api/auth', authRouter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'Node.js Gateway' }));
 

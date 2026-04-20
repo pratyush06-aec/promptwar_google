@@ -4,3 +4,5 @@ __pycache__/
 .env
 .expo/
 *.log
+dist/
+.pytest_cache/
